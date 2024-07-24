@@ -44,7 +44,6 @@ export default function FilesUpload({ onUploadPhotos, disableSubmit }) {
       dropzoneRef.current.style.color = baseStyle.color;
     }
   }
-  const disabledTrue = true;
   return (
     <>
       {!photos && (
