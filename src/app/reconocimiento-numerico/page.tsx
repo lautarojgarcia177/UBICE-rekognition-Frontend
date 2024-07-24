@@ -7,10 +7,33 @@ import {
 import { useEdgeStore } from "@/lib/edgestore";
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
+import {
+  NumberInput,
+  NumberInputField,
+  NumberInputStepper,
+  NumberIncrementStepper,
+  NumberDecrementStepper,
+  Text,
+  Input,
+} from "@chakra-ui/react";
+import MultipleFilesInput from "../components/multiple-files-input/MultipleFilesInput";
+import FilesUpload from "../components/files-upload/FilesUpload";
 
 export default function MultiImageDropzoneUsage() {
   const [fileStates, setFileStates] = useState<FileState[]>([]);
+  const [eventNumber, setEventNumber] = useState<number>();
   const { edgestore } = useEdgeStore();
+
+  async function onUploadPhotos(selectedFiles: File[]) {
+    console.log(selectedFiles);
+    // if (!eventNumber) {
+    //   setInvalidTextNumber(true);
+    //   return;
+    // }
+    // setAmountOfPhotosToUpload(selectedFiles.length);
+    // setIsUploading(true);
+    // suscribirseANotificaciones();
+  }
 
   function updateFileProgress(key: string, progress: FileState["progress"]) {
     setFileStates((fileStates) => {
@@ -32,44 +55,24 @@ export default function MultiImageDropzoneUsage() {
   }
 
   return (
-    <div>
-      <MultiImageDropzone
-        value={fileStates}
-        dropzoneOptions={{
-          multiple: true,
-          maxFiles: 1000,
-        }}
-        onChange={(files) => {
-          setFileStates(files);
-        }}
-        onFilesAdded={async (addedFiles) => {
-          setFileStates([...fileStates, ...addedFiles]);
-          await Promise.all(
-            addedFiles.map(async (addedFileState) => {
-              try {
-                const res = await edgestore.publicImages.upload({
-                  file: addedFileState.file,
-                  options: {
-                    temporary: true,
-                    manualFileName: generateFileName(),
-                  },
-                  onProgressChange: async (progress) => {
-                    updateFileProgress(addedFileState.key, progress);
-                    if (progress === 100) {
-                      // wait 1 second to set it to complete
-                      // so that the user can see the progress bar at 100%
-                      await new Promise((resolve) => setTimeout(resolve, 1000));
-                      updateFileProgress(addedFileState.key, "COMPLETE");
-                    }
-                  },
-                });
-                console.log(res);
-              } catch (err) {
-                updateFileProgress(addedFileState.key, "ERROR");
-              }
-            })
-          );
-        }}
+    <div className="flex flex-col justify-center items-center">
+      <div className="w-64">
+        <Text>Numero de evento</Text>
+        <NumberInput
+          onChange={(newNumber) => setEventNumber(Number(newNumber))}
+          value={eventNumber}
+          min={0}
+        >
+          <NumberInputField />
+          <NumberInputStepper>
+            <NumberIncrementStepper />
+            <NumberDecrementStepper />
+          </NumberInputStepper>
+        </NumberInput>
+      </div>
+      <FilesUpload
+        onUploadPhotos={onUploadPhotos}
+        disableSubmit={!eventNumber}
       />
     </div>
   );
