@@ -12,8 +12,8 @@ import {
   Text,
   CircularProgress,
 } from "@chakra-ui/react";
-import FilesUpload from "../components/files-upload/FilesUpload";
 import { useToast } from "@chakra-ui/react";
+import FilesUpload from "@/app/components/files-upload/FilesUpload";
 
 export default function ReconocimientoNumerico() {
   const [eventNumber, setEventNumber] = useState<number>();
@@ -122,7 +122,7 @@ export default function ReconocimientoNumerico() {
   );
 
   return (
-    <div className="flex flex-col justify-center items-center">
+    <div className="flex flex-col justify-center items-center h-screen-80">
       {!isUploading ? uploadTSX : uploadingTSX}
     </div>
   );

@@ -3,7 +3,6 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { EdgeStoreProvider } from "@/lib/edgestore";
 import { ChakraProvider } from "@chakra-ui/react";
-import MenuDrawer from "./components/menu-drawer/MenuDrawer";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,10 +20,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <EdgeStoreProvider>
-          <ChakraProvider>
-            <MenuDrawer />
-            {children}
-          </ChakraProvider>
+          <ChakraProvider>{children}</ChakraProvider>
         </EdgeStoreProvider>
       </body>
     </html>
