@@ -7,7 +7,7 @@ import PasswordInput from "./components/password-input/PasswordInput";
 import { Spinner } from "@chakra-ui/react";
 import { Text } from "@chakra-ui/react";
 
-export default function Entrance() {
+export default function Login() {
   const [pass, setPass] = useState<string>("");
   const router = useRouter();
   const [loading, setLoading] = useState(false);

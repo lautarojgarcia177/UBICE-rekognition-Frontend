@@ -14,12 +14,19 @@ import {
 } from "@chakra-ui/react";
 import { useToast } from "@chakra-ui/react";
 import FilesUpload from "@/app/components/files-upload/FilesUpload";
+import MultipleNumbersInput from "@/app/components/multiple-numbers-input/MultipleNumbersInput";
+import { InputNumberItem } from "@/app/types";
+import { validateInputNumberItems } from "@/app/utils";
+import { useForceUpdate } from "@/app/hooks";
 
 export default function ReconocimientoNumerico() {
   const [eventNumber, setEventNumber] = useState<number>();
+  const [invalidEventNumber, setInvalidEventNumber] = useState<boolean>(false);
+  const [bannedNumbers, setBannedNumbers] = useState<InputNumberItem[]>([]);
   const [uploadedPhotosProgress, setUploadedPhotosProgress] = useState(0);
   const { edgestore } = useEdgeStore();
   const [isUploading, setIsUploading] = useState(false);
+  const forceUpdate = useForceUpdate();
 
   const toast = useToast();
 
@@ -37,44 +44,60 @@ export default function ReconocimientoNumerico() {
     }
   }, [uploadedPhotosProgress, eventNumber, toast]);
 
-  async function onUploadPhotos(selectedFiles: File[]) {
-    let amountOfPhotosUploaded = 0;
-    const promises = selectedFiles.map((file) =>
-      edgestore.publicImages.upload({
-        file: file,
-        options: {
-          manualFileName: generateFileName(),
-          temporary: true,
-        },
-        onProgressChange: async (progress) => {
-          if (progress === 100) {
-            amountOfPhotosUploaded++;
-            const progress =
-              (amountOfPhotosUploaded / selectedFiles.length) * 100;
-            setUploadedPhotosProgress(progress);
-          }
-        },
-      })
-    );
-    setIsUploading(true);
-    try {
-      await Promise.all(promises);
-    } catch (error) {
-      console.error("Hubo un error subiendo las fotos"),
-        toast({
-          title: "Error subiendo las fotos",
-          description:
-            "Las fotos no se han podido subir, revise la consola del navegador",
-          status: "error",
-          duration: null,
-          isClosable: true,
-        });
+  function checkValidity() {
+    const bannedNumbersValid = validateInputNumberItems(bannedNumbers);
+    if (!eventNumber) {
+      setInvalidEventNumber(true);
+    }
+    forceUpdate();
+    return bannedNumbersValid && eventNumber;
+  }
+
+  async function onSubmit(selectedFiles: File[]) {
+    const formValid = checkValidity();
+    if (formValid) {
+      let amountOfPhotosUploaded = 0;
+      const promises = selectedFiles.map((file) =>
+        edgestore.publicImages.upload({
+          file: file,
+          options: {
+            manualFileName: generateFileName(),
+            temporary: true,
+          },
+          onProgressChange: async (progress) => {
+            if (progress === 100) {
+              amountOfPhotosUploaded++;
+              const progress =
+                (amountOfPhotosUploaded / selectedFiles.length) * 100;
+              setUploadedPhotosProgress(progress);
+            }
+          },
+        })
+      );
+      setIsUploading(true);
+      try {
+        await Promise.all(promises);
+      } catch (error) {
+        console.error("Hubo un error subiendo las fotos"),
+          toast({
+            title: "Error subiendo las fotos",
+            description:
+              "Las fotos no se han podido subir, revise la consola del navegador",
+            status: "error",
+            duration: null,
+            isClosable: true,
+          });
+      }
     }
   }
 
   function generateFileName() {
+    let bannedNumbersString = "bannedNumbers=";
+    for (let bannedNumber of bannedNumbers) {
+      bannedNumbersString += String(bannedNumber.value) + ",";
+    }
     const newUuid = uuidv4();
-    return `evento_${eventNumber}/foto_${newUuid}`;
+    return `${bannedNumbersString}evento_${eventNumber}/foto_${newUuid}`;
   }
 
   function formaUploadedPhotosProgress() {
@@ -86,14 +109,20 @@ export default function ReconocimientoNumerico() {
     return uploadedPhotosProgress.toFixed(2).replace(/\.00$/, "");
   }
 
+  function handleEventNumberInputChange(newNumber: any) {
+    setInvalidEventNumber(false);
+    setEventNumber(Number(newNumber));
+  }
+
   const uploadTSX = (
     <>
-      <div className="w-64">
-        <Text>Numero de evento</Text>
+      <div className="w-80">
+        <Text>Número de evento</Text>
         <NumberInput
-          onChange={(newNumber) => setEventNumber(Number(newNumber))}
+          onChange={handleEventNumberInputChange}
           value={eventNumber}
           min={0}
+          isInvalid={invalidEventNumber}
         >
           <NumberInputField />
           <NumberInputStepper>
@@ -101,11 +130,18 @@ export default function ReconocimientoNumerico() {
             <NumberDecrementStepper />
           </NumberInputStepper>
         </NumberInput>
+        {invalidEventNumber && (
+          <Text textColor={"red"}>Debe ingresar un número de evento</Text>
+        )}
       </div>
-      <FilesUpload
-        onUploadPhotos={onUploadPhotos}
-        disableSubmit={!eventNumber}
-      />
+      <div className="w-80 mt-4 mb-4">
+        <MultipleNumbersInput
+          label="Números a ignorar"
+          numbersArray={bannedNumbers}
+          setNumbersArray={setBannedNumbers}
+        />
+      </div>
+      <FilesUpload submit={onSubmit} />
     </>
   );
 

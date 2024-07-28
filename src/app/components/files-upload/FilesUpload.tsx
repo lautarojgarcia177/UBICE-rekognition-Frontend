@@ -5,7 +5,13 @@ import { useState, useRef } from "react";
 import { Button, Tooltip } from "@chakra-ui/react";
 import { CircleX, Upload } from "lucide-react";
 
-export default function FilesUpload({ onUploadPhotos, disableSubmit }) {
+export default function FilesUpload({
+  submit,
+  disableSubmit,
+}: {
+  submit: any;
+  disableSubmit?: boolean;
+}) {
   const [photos, setPhotos] = useState<File[] | null>(null);
   function handleDrop(selectedFiles: File[]) {
     setPhotos(selectedFiles);
@@ -90,13 +96,13 @@ export default function FilesUpload({ onUploadPhotos, disableSubmit }) {
                 <CircleX />
               </Button>
             </Tooltip>
+            <Button
+              isDisabled={!photos || disableSubmit}
+              onClick={() => submit(photos)}
+            >
+              Subir fotos
+            </Button>
           </div>
-          <Button
-            isDisabled={!photos || disableSubmit}
-            onClick={() => onUploadPhotos(photos)}
-          >
-            Subir fotos
-          </Button>
         </>
       )}
     </>

@@ -39,7 +39,7 @@ export default function PasswordInput({
           isInvalid={isInvalid}
           onKeyDown={handleKeyDown}
         />
-        <InputRightElement width="4.5rem">
+        <InputRightElement width="4.5rem" className="me-1">
           <Button h="1.75rem" size="sm" onClick={handleClick}>
             {show ? "Ocultar" : "Mostrar"}
           </Button>
