@@ -41,6 +41,8 @@ export default function ReconocimientoNumerico() {
         duration: null,
         isClosable: true,
       });
+      setBannedNumbers([]);
+      setEventNumber(0);
     }
   }, [uploadedPhotosProgress, eventNumber, toast]);
 
@@ -92,12 +94,12 @@ export default function ReconocimientoNumerico() {
   }
 
   function generateFileName() {
-    let bannedNumbersString = "bannedNumbers=";
+    let bannedNumbersString = "bannedNumbers-";
     for (let bannedNumber of bannedNumbers) {
-      bannedNumbersString += String(bannedNumber.value) + ",";
+      bannedNumbersString += String(bannedNumber.value) + "_";
     }
     const newUuid = uuidv4();
-    return `${bannedNumbersString}evento_${eventNumber}/foto_${newUuid}`;
+    return `${bannedNumbersString}/evento_${eventNumber}/foto_${newUuid}`;
   }
 
   function formaUploadedPhotosProgress() {

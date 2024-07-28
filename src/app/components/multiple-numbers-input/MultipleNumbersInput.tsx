@@ -73,7 +73,7 @@ export default function MultipleNumbersInput({
             </Button>
           </div>
           {!numbersArray[index].isValid && (
-            <Text textColor={"red"}>El numero ingresado esta repetido</Text>
+            <Text textColor={"red"}>El número ingresado esta repetido</Text>
           )}
         </div>
       ))}

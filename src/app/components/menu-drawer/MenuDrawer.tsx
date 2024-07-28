@@ -18,12 +18,12 @@ import { Link, Divider } from "@chakra-ui/react";
 const menuEntries = [
   {
     title: "Reconocimiento numérico",
-    path: "/reconocimiento-numerico",
+    path: "/rekognition/reconocimiento-numerico",
     icon: <Tag />,
   },
   {
     title: "Descargar paquetes de fotos etiquetadas",
-    path: "/descargar-paquetes-fotos-etiquetadas",
+    path: "/rekognition/descargar-fotos-etiquetadas-por-evento",
     icon: <Download />,
   },
 ];
