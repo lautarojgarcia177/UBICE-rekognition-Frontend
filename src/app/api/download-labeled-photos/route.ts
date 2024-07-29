@@ -6,6 +6,7 @@ import {
 } from "@aws-sdk/client-s3";
 import archiver from "archiver";
 import { NextRequest, NextResponse } from "next/server";
+import { createReadStream, createWriteStream, unlink } from "fs";
 
 const awsRegion = process.env.ES_AWS_REGION;
 const awsAccessKeyId = process.env.ES_AWS_ACCESS_KEY_ID as string;
@@ -23,8 +24,8 @@ async function listObjects(eventNumber: number) {
   try {
     const objectKeys = await s3Client.send(
       new ListObjectsV2Command({
-        Bucket: process.env.ES_AWS_BUCKET_NAME,
-        Prefix: `event_${eventNumber}`,
+        Bucket: process.env.AWS_DOWNLOAD_BUCKET_NAME,
+        Prefix: `evento_${eventNumber}`,
       })
     );
     if (objectKeys && objectKeys.Contents) {
@@ -37,35 +38,33 @@ async function listObjects(eventNumber: number) {
   }
 }
 
-async function prepareZipForDownload(
-  eventNumber: number,
-  objectKeys: any,
-  res: any
-) {
+async function prepareZipForDownload(eventNumber: number, objectKeys: any) {
   return new Promise(async (resolve: any, reject) => {
-    // Here we tell the client browser that It has to download the response
-    res.setHeader("Content-Type", "application/zip");
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename=evento_${eventNumber}.zip`
-    );
     const archive = archiver("zip");
     archive.on("error", (err) => {
       reject(err);
     });
 
-    archive.pipe(res);
+    // Temporary file to save the archive
+    const tempFilePath = "temp-archive.zip";
+    const output = createWriteStream(tempFilePath);
+
+    archive.pipe(output);
 
     for (let objectKey of objectKeys) {
       let getObjectResponse;
       try {
         getObjectResponse = (await s3Client.send(
           new GetObjectCommand({
-            Bucket: process.env.ES_AWS_BUCKET_NAME,
+            Bucket: process.env.AWS_DOWNLOAD_BUCKET_NAME,
             Key: objectKey,
           })
         )) as any;
-        const fileName = objectKey.split("/").pop();
+        const photosPrefixToRemove = "foto_";
+        let fileName = objectKey.split("/").pop() + ".jpg";
+        if (fileName.startsWith(photosPrefixToRemove)) {
+          fileName = fileName.slice(photosPrefixToRemove.length);
+        }
         archive.append(getObjectResponse.Body, { name: fileName });
       } catch (error) {
         console.error("Error obteniendo el objeto de aws s3,", error);
@@ -75,18 +74,35 @@ async function prepareZipForDownload(
 
     archive.finalize();
     archive.on("end", () => {
-      resolve();
+      const archiveStream = createReadStream(tempFilePath);
+      unlink(tempFilePath, (err) => {
+        if (err) {
+          console.error("Failed to delete temporary file:", err);
+        } else {
+          console.log("Temporary file deleted.");
+        }
+      });
+      resolve(archiveStream);
     });
   });
 }
 
 export async function POST(request: NextRequest) {
-  const response = new Response();
   try {
     const { eventNumber } = await request.json();
     const objectKeys = await listObjects(eventNumber);
     if (objectKeys && objectKeys.length) {
-      await prepareZipForDownload(eventNumber, objectKeys, response);
+      const archiveStream: any = await prepareZipForDownload(
+        eventNumber,
+        objectKeys
+      );
+      return new NextResponse(archiveStream, {
+        // Here we tell the client browser that It has to download the response
+        headers: {
+          "Content-Type": "application/zip",
+          "Content-Disposition": `attachment; filename=evento_${eventNumber}.zip`,
+        },
+      });
     } else {
       return NextResponse.json(
         {

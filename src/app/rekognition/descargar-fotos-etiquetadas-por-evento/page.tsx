@@ -60,7 +60,7 @@ export default function DescargarFotosEtiquetadasPorEvento() {
         link.click();
         link.remove();
         toast({
-          title: "Fotos subidas",
+          title: "Fotos encontradas",
           description: "Se descargaron las fotos del evento " + eventNumber,
           status: "success",
           duration: null,
