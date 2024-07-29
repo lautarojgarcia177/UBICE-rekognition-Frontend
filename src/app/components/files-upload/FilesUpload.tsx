@@ -62,7 +62,22 @@ export default function FilesUpload({
           {({ getRootProps, getInputProps }) => {
             return (
               <div
-                {...getRootProps({ style: baseStyle })}
+                {...getRootProps({
+                  style: {
+                    display: baseStyle.display,
+                    flexDirection: "column",
+                    alignItems: baseStyle.alignItems,
+                    padding: baseStyle.padding,
+                    borderWidth: baseStyle.borderWidth,
+                    borderRadius: baseStyle.borderRadius,
+                    borderColor: baseStyle.borderColor,
+                    borderStyle: baseStyle.borderStyle,
+                    backgroundColor: baseStyle.backgroundColor,
+                    color: baseStyle.color,
+                    outline: baseStyle.outline,
+                    transition: baseStyle.transition,
+                  },
+                })}
                 onDragEnter={setActiveStyle}
                 onDragLeave={setDefaultStyle}
                 onMouseEnter={setActiveStyle}
