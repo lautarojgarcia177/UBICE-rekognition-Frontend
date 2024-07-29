@@ -8,8 +8,8 @@ import archiver from "archiver";
 import { NextRequest, NextResponse } from "next/server";
 
 const awsRegion = process.env.ES_AWS_REGION;
-const awsAccessKeyId = process.env.EDGE_STORE_ACCESS_KEY as string;
-const awsSecretAccessKey = process.env.EDGE_STORE_SECRET_KEY as string;
+const awsAccessKeyId = process.env.ES_AWS_ACCESS_KEY_ID as string;
+const awsSecretAccessKey = process.env.ES_AWS_SECRET_ACCESS_KEY as string;
 
 const s3Client = new S3Client({
   region: awsRegion,
@@ -23,8 +23,8 @@ async function listObjects(eventNumber: number) {
   try {
     const objectKeys = await s3Client.send(
       new ListObjectsV2Command({
-        Bucket: process.env.AWS_S3_BUCKET_NAME,
-        Prefix: `event_${eventNumber}eventNumber`,
+        Bucket: process.env.ES_AWS_BUCKET_NAME,
+        Prefix: `event_${eventNumber}`,
       })
     );
     if (objectKeys && objectKeys.Contents) {
@@ -38,7 +38,7 @@ async function listObjects(eventNumber: number) {
 }
 
 async function prepareZipForDownload(
-  eventNumber: string,
+  eventNumber: number,
   objectKeys: any,
   res: any
 ) {
@@ -61,7 +61,7 @@ async function prepareZipForDownload(
       try {
         getObjectResponse = (await s3Client.send(
           new GetObjectCommand({
-            Bucket: process.env.AWS_S3_BUCKET_NAME,
+            Bucket: process.env.ES_AWS_BUCKET_NAME,
             Key: objectKey,
           })
         )) as any;
@@ -83,14 +83,14 @@ async function prepareZipForDownload(
 export async function POST(request: NextRequest) {
   const response = new Response();
   try {
-    const { uploadPackageId } = request.body as any;
-    const objectKeys = await listObjects(uploadPackageId);
+    const { eventNumber } = await request.json();
+    const objectKeys = await listObjects(eventNumber);
     if (objectKeys && objectKeys.length) {
-      await prepareZipForDownload(uploadPackageId, objectKeys, response);
+      await prepareZipForDownload(eventNumber, objectKeys, response);
     } else {
       return NextResponse.json(
         {
-          error: "id del paquete de subida no encontrado",
+          error: "Evento no encontrado",
         },
         { status: 400 }
       );

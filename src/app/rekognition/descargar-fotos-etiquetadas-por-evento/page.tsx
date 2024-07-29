@@ -11,11 +11,14 @@ import {
   Button,
 } from "@chakra-ui/react";
 import { useState } from "react";
+import { useToast } from "@chakra-ui/react";
 
 export default function DescargarFotosEtiquetadasPorEvento() {
   const [eventNumber, setEventNumber] = useState<number>();
   const [invalidEventNumber, setInvalidEventNumber] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  const toast = useToast();
 
   function handleEventNumberInputChange(newNumber: any) {
     setInvalidEventNumber(false);
@@ -33,6 +36,37 @@ export default function DescargarFotosEtiquetadasPorEvento() {
     const formValid = checkValidity();
     if (formValid) {
       // Buscar fotos y descargarlas
+      const response = await fetch(`/api/download-labeled-photos`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ eventNumber }),
+      });
+      if (!response.ok) {
+        const responseError = await response.json();
+        if (responseError) {
+          throw new Error(responseError.error);
+        }
+        throw new Error("An error occurred while downloading the zip file");
+      } else {
+        setIsLoading(false);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `evento_${eventNumber}.zip`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        toast({
+          title: "Fotos subidas",
+          description: "Se descargaron las fotos del evento " + eventNumber,
+          status: "success",
+          duration: null,
+          isClosable: true,
+        });
+      }
     }
   }
 
@@ -58,7 +92,9 @@ export default function DescargarFotosEtiquetadasPorEvento() {
           </Text>
         )}
       </div>
-      <Button className="mt-4" onClick={onSubmit}>Descargar fotos</Button>
+      <Button className="mt-4" onClick={onSubmit}>
+        Descargar fotos
+      </Button>
     </>
   );
 
