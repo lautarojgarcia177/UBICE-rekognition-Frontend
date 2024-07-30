@@ -43,7 +43,10 @@ export default function ReconocimientoNumerico() {
       setUploadedPhotosProgress(0);
       toast({
         title: "Fotos subidas",
-        description: "Se subieron las fotos del evento " + eventNumber,
+        description:
+          "Se subieron las fotos del evento " +
+          eventNumber +
+          ". Las fotos se estan procesando, espere unos minutos antes de intentar descargar el paquete",
         status: "success",
         duration: null,
         isClosable: true,
