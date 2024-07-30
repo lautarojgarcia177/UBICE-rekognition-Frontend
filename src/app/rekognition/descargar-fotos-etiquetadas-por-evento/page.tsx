@@ -108,6 +108,14 @@ export default function DescargarFotosEtiquetadasPorEvento() {
       } catch (error) {
         console.error(error);
         setDownloadedPhotosProgress(0);
+        toast({
+          title: "Error descargando las fotos",
+          description:
+            "No se pudo descargar el paquete de fotos, revise la consola del navegador para mas detalles tecnicos",
+          status: "error",
+          duration: null,
+          isClosable: true,
+        });
       }
     }
     setIsLoading(false);
