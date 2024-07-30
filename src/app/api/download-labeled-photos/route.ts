@@ -2,11 +2,9 @@ import {
   S3Client,
   GetObjectCommand,
   ListObjectsV2Command,
-  ListObjectsV2CommandOutput,
 } from "@aws-sdk/client-s3";
 import archiver from "archiver";
 import { NextRequest, NextResponse } from "next/server";
-// import { createReadStream, createWriteStream, unlink } from "fs";
 import { PassThrough } from "stream";
 
 const awsRegion = process.env.ES_AWS_REGION;
@@ -48,10 +46,6 @@ async function prepareZipForDownload(eventNumber: number, objectKeys: any) {
       reject(err);
     });
 
-    passthroughStream.on("close", () => {
-      // resolve(passthroughStream);
-    });
-
     archive.pipe(passthroughStream);
 
     (async () => {
@@ -80,8 +74,6 @@ async function prepareZipForDownload(eventNumber: number, objectKeys: any) {
     })();
 
     resolve(passthroughStream);
-    // archive.on("end", () => {
-    // });
   });
 }
 

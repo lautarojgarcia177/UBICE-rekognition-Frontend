@@ -43,23 +43,28 @@ export default function DescargarFotosEtiquetadasPorEvento() {
     setIsLoading(true);
     const formValid = checkValidity();
     if (formValid) {
-      // Buscar fotos y descargarlas
-      const response = await fetch(`/api/download-labeled-photos`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ eventNumber }),
-      });
-      if (!response.ok) {
+      let response;
+      try {
+        // Buscar fotos y descargarlas
+        response = await fetch(`/api/download-labeled-photos`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ eventNumber }),
+        });
+      } catch (error) {
+        setIsLoading(false);
+      }
+      if (response && !response.ok) {
+        setIsLoading(false);
         const responseError = await response.json();
         if (responseError) {
           throw new Error(responseError.error);
         }
         throw new Error("An error occurred while downloading the zip file");
       } else {
-        setIsLoading(false);
-        const blob = await response.blob();
+        const blob = await response!.blob();
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
@@ -74,10 +79,12 @@ export default function DescargarFotosEtiquetadasPorEvento() {
           duration: null,
           isClosable: true,
         });
+        setIsLoading(false);
       }
-      setEventNumber(undefined)
+      setEventNumber(undefined);
+    } else {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }
 
   const downloadTSX = (
