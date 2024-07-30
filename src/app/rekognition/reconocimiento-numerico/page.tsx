@@ -112,7 +112,7 @@ export default function ReconocimientoNumerico() {
     return `${bannedNumbersString}/evento_${eventNumber}/foto_${newUuid}`;
   }
 
-  function formaUploadedPhotosProgress() {
+  function formatUploadedPhotosProgress() {
     // Check if the number is an integer
     if (Number.isInteger(uploadedPhotosProgress)) {
       return uploadedPhotosProgress.toString();
@@ -165,7 +165,7 @@ export default function ReconocimientoNumerico() {
         value={uploadedPhotosProgress}
         size="120px"
       />
-      <Text>{formaUploadedPhotosProgress()}%</Text>
+      <Text>{formatUploadedPhotosProgress()}%</Text>
     </>
   );
 
