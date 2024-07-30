@@ -7,7 +7,7 @@ import {
   NumberInput,
   NumberInputField,
   NumberInputStepper,
-  CircularProgress,
+  Spinner,
   Button,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
@@ -109,7 +109,7 @@ export default function DescargarFotosEtiquetadasPorEvento() {
 
   const loadingTSX = (
     <>
-      <CircularProgress capIsRound size="120px" />
+      <Spinner size="xl" />
     </>
   );
 
