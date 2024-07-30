@@ -20,7 +20,9 @@
     "@emotion/styled": "^11.13.0",
     "@types/uuid": "^10.0.0",
     "archiver": "^7.0.1",
+    "file-saver": "^2.0.5",
     "framer-motion": "^11.3.16",
+    "jszip": "^3.10.1",
     "lucide-react": "^0.408.0",
     "next": "14.2.5",
     "react": "^18",
@@ -32,6 +34,7 @@
   },
   "devDependencies": {
     "@types/archiver": "^6.0.2",
+    "@types/file-saver": "^2.0.7",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

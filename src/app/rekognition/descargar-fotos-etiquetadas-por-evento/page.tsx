@@ -14,6 +14,8 @@ import { useEffect, useState } from "react";
 import { useToast } from "@chakra-ui/react";
 import { isAuthenticated } from "@/app/authStatus";
 import { redirect } from "next/navigation";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
 
 export default function DescargarFotosEtiquetadasPorEvento() {
   const [eventNumber, setEventNumber] = useState<number | undefined>();
@@ -39,52 +41,45 @@ export default function DescargarFotosEtiquetadasPorEvento() {
     return Boolean(eventNumber);
   }
 
+  async function fetchImage(url: string) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Failed to fetch image at ${url}`);
+    return response.blob();
+  }
+
   async function onSubmit() {
     setIsLoading(true);
-    const formValid = checkValidity();
-    if (formValid) {
-      let response;
-      try {
-        // Buscar fotos y descargarlas
-        response = await fetch(`/api/download-labeled-photos`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ eventNumber }),
-        });
-      } catch (error) {
-        setIsLoading(false);
+    try {
+      const response = await fetch(`/api/get-presigned-multiple-urls`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ eventNumber }),
+      });
+      const { presignedUrls } = await response.json();
+
+      const zip = new JSZip();
+
+      for (let presignedUrl of presignedUrls) {
+        const blob = await fetchImage(presignedUrl);
+        const filename = Math.random() + ".jpg";
+        zip.file(filename, blob);
       }
-      if (response && !response.ok) {
-        setIsLoading(false);
-        const responseError = await response.json();
-        if (responseError) {
-          throw new Error(responseError.error);
-        }
-        throw new Error("An error occurred while downloading the zip file");
-      } else {
-        const blob = await response!.blob();
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", `evento_${eventNumber}.zip`);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        toast({
-          title: "Fotos encontradas",
-          description: "Se descargaron las fotos del evento " + eventNumber,
-          status: "success",
-          duration: null,
-          isClosable: true,
-        });
-        setIsLoading(false);
-      }
-      setEventNumber(undefined);
-    } else {
-      setIsLoading(false);
+
+      const generatedZipFile = await zip.generateAsync({ type: "blob" });
+      saveAs(generatedZipFile, "evento_" + eventNumber);
+      toast({
+        title: "Fotos encontradas",
+        description: "Se descargaron las fotos del evento " + eventNumber,
+        status: "success",
+        duration: null,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error(error);
     }
+    setIsLoading(false);
   }
 
   const downloadTSX = (
