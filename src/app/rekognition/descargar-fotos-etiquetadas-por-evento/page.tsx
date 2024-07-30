@@ -16,7 +16,7 @@ import { isAuthenticated } from "@/app/authStatus";
 import { redirect } from "next/navigation";
 
 export default function DescargarFotosEtiquetadasPorEvento() {
-  const [eventNumber, setEventNumber] = useState<number>();
+  const [eventNumber, setEventNumber] = useState<number | undefined>();
   const [invalidEventNumber, setInvalidEventNumber] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
   useEffect(() => {
@@ -75,6 +75,7 @@ export default function DescargarFotosEtiquetadasPorEvento() {
           isClosable: true,
         });
       }
+      setEventNumber(undefined)
     }
     setIsLoading(false);
   }

@@ -6,7 +6,7 @@ import { InputNumberItem } from "./types";
     If there are no repeated values, it returns true.
  */
 export const validateInputNumberItems = (items: InputNumberItem[]): boolean => {
-  const valueMap = new Map<number, number>(); // To track occurrences of each value
+  const valueMap = new Map<number | undefined, number>(); // To track occurrences of each value
 
   // First pass: Identify and count each value's occurrences
   items.forEach((item, index) => {
@@ -18,7 +18,7 @@ export const validateInputNumberItems = (items: InputNumberItem[]): boolean => {
   });
 
   // Second pass: Set isValid to false for repeated values (except the first occurrence)
-  const seen = new Set<number>();
+  const seen = new Set<number | undefined>();
   items.forEach((item) => {
     if (valueMap.get(item.value)! > 1) {
       if (seen.has(item.value)) {
@@ -32,5 +32,20 @@ export const validateInputNumberItems = (items: InputNumberItem[]): boolean => {
   // Check if there are any repeated values
   const hasRepeats = Array.from(valueMap.values()).some((count) => count > 1);
 
-  return !hasRepeats;
+  // Check for undefined values
+  let hasUndefinedValues = false;
+  for (let item of items) {
+    if (item.value === undefined) {
+      item.isValid = false;
+      hasUndefinedValues = true;
+    }
+  }
+
+  if (hasUndefinedValues) {
+    return false;
+  }
+  if (hasRepeats) {
+    return false;
+  }
+  return true;
 };

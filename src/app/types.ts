@@ -1,4 +1,4 @@
 export interface InputNumberItem {
-  value: number;
+  value: number | undefined;
   isValid: boolean;
 }
