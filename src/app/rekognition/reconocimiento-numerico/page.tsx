@@ -18,6 +18,8 @@ import MultipleNumbersInput from "@/app/components/multiple-numbers-input/Multip
 import { InputNumberItem } from "@/app/types";
 import { validateInputNumberItems } from "@/app/utils";
 import { useForceUpdate } from "@/app/hooks";
+import { isAuthenticated } from "@/app/authStatus";
+import { redirect } from "next/navigation";
 
 export default function ReconocimientoNumerico() {
   const [eventNumber, setEventNumber] = useState<number>();
@@ -27,6 +29,11 @@ export default function ReconocimientoNumerico() {
   const { edgestore } = useEdgeStore();
   const [isUploading, setIsUploading] = useState(false);
   const forceUpdate = useForceUpdate();
+  useEffect(() => {
+    if (!isAuthenticated) {
+      redirect("/");
+    }
+  }, []);
 
   const toast = useToast();
 

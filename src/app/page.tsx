@@ -6,6 +6,7 @@ import { Button } from "@chakra-ui/react";
 import PasswordInput from "./components/password-input/PasswordInput";
 import { Spinner } from "@chakra-ui/react";
 import { Text } from "@chakra-ui/react";
+import { setIsAuthenticated } from "./authStatus";
 
 export default function Login() {
   const [pass, setPass] = useState<string>("");
@@ -24,6 +25,7 @@ export default function Login() {
     });
     setLoading(false);
     if (response.ok) {
+      setIsAuthenticated(true);
       router.push("/rekognition/reconocimiento-numerico");
     } else {
       setInvalidPass(true);

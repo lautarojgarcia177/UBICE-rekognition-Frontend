@@ -10,13 +10,20 @@ import {
   CircularProgress,
   Button,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "@chakra-ui/react";
+import { isAuthenticated } from "@/app/authStatus";
+import { redirect } from "next/navigation";
 
 export default function DescargarFotosEtiquetadasPorEvento() {
   const [eventNumber, setEventNumber] = useState<number>();
   const [invalidEventNumber, setInvalidEventNumber] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
+  useEffect(() => {
+    if (!isAuthenticated) {
+      redirect("/");
+    }
+  }, []);
 
   const toast = useToast();
 
