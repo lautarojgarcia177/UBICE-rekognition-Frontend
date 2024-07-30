@@ -40,6 +40,7 @@ export default function DescargarFotosEtiquetadasPorEvento() {
   }
 
   async function onSubmit() {
+    setIsLoading(true);
     const formValid = checkValidity();
     if (formValid) {
       // Buscar fotos y descargarlas
@@ -75,6 +76,7 @@ export default function DescargarFotosEtiquetadasPorEvento() {
         });
       }
     }
+    setIsLoading(false);
   }
 
   const downloadTSX = (
