@@ -6,7 +6,8 @@ import {
 } from "@aws-sdk/client-s3";
 import archiver from "archiver";
 import { NextRequest, NextResponse } from "next/server";
-import { createReadStream, createWriteStream, unlink } from "fs";
+// import { createReadStream, createWriteStream, unlink } from "fs";
+import { PassThrough } from "stream";
 
 const awsRegion = process.env.ES_AWS_REGION;
 const awsAccessKeyId = process.env.ES_AWS_ACCESS_KEY_ID as string;
@@ -41,49 +42,46 @@ async function listObjects(eventNumber: number) {
 async function prepareZipForDownload(eventNumber: number, objectKeys: any) {
   return new Promise(async (resolve: any, reject) => {
     const archive = archiver("zip");
+    const passthroughStream = new PassThrough();
+
     archive.on("error", (err) => {
       reject(err);
     });
 
-    // Temporary file to save the archive
-    const tempFilePath = "temp-archive.zip";
-    const output = createWriteStream(tempFilePath);
-
-    archive.pipe(output);
-
-    for (let objectKey of objectKeys) {
-      let getObjectResponse;
-      try {
-        getObjectResponse = (await s3Client.send(
-          new GetObjectCommand({
-            Bucket: process.env.AWS_DOWNLOAD_BUCKET_NAME,
-            Key: objectKey,
-          })
-        )) as any;
-        const photosPrefixToRemove = "foto_";
-        let fileName = objectKey.split("/").pop() + ".jpg";
-        if (fileName.startsWith(photosPrefixToRemove)) {
-          fileName = fileName.slice(photosPrefixToRemove.length);
-        }
-        archive.append(getObjectResponse.Body, { name: fileName });
-      } catch (error) {
-        console.error("Error obteniendo el objeto de aws s3,", error);
-        reject(error);
-      }
-    }
-
-    archive.finalize();
-    archive.on("end", () => {
-      const archiveStream = createReadStream(tempFilePath);
-      unlink(tempFilePath, (err) => {
-        if (err) {
-          console.error("Failed to delete temporary file:", err);
-        } else {
-          console.log("Temporary file deleted.");
-        }
-      });
-      resolve(archiveStream);
+    passthroughStream.on("close", () => {
+      // resolve(passthroughStream);
     });
+
+    archive.pipe(passthroughStream);
+
+    (async () => {
+      for (let objectKey of objectKeys) {
+        let getObjectResponse;
+        try {
+          getObjectResponse = (await s3Client.send(
+            new GetObjectCommand({
+              Bucket: process.env.AWS_DOWNLOAD_BUCKET_NAME,
+              Key: objectKey,
+            })
+          )) as any;
+          const photosPrefixToRemove = "foto_";
+          let fileName = objectKey.split("/").pop() + ".jpg";
+          if (fileName.startsWith(photosPrefixToRemove)) {
+            fileName = fileName.slice(photosPrefixToRemove.length);
+          }
+          archive.append(getObjectResponse.Body, { name: fileName });
+        } catch (error) {
+          console.error("Error obteniendo el objeto de aws s3,", error);
+          reject(error);
+        }
+      }
+
+      archive.finalize();
+    })();
+
+    resolve(passthroughStream);
+    // archive.on("end", () => {
+    // });
   });
 }
 
